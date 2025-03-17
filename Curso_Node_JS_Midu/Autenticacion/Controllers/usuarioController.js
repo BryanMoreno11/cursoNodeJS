@@ -1,5 +1,6 @@
 const SqlModule = require("../sequelize/models/index");
 const bcrypt = require("bcrypt");
+const jwt= require('jsonwebtoken');
 const {SALT_ROUNDS} = require("../config");
 async function crearUsuario(req, res) {
   try {
@@ -50,9 +51,16 @@ async function login(req, res) {
   if (!isValidPassword) {
     return res.status(401).json({ error: "Contraseña incorrecta" });
   }
-  return res.status(200).json({
-    username: usuario.username,
-  });
+  const token= jwt.sign({id:usuario.id, username: usuario.username}, process.env.JWT_SECRET,
+   {expiresIn: "1h"}
+  );
+  res.cookie("access_token", token, {
+    httpOnly: true, // Solo se puede acceder a través de solicitudes HTTP
+    secure: process.env.NODE_ENV==="production", // Utiliza HTTPS
+    sameSite: "strict", // Evita ataques CSRF, verifiica si el sitio es el mismo
+    maxAge:1000*60*60 , // Tiempo de expiración del token (en milisegundos)
+    
+  }).send({message: "Inicio de sesión exitoso"});
 }
 
 function validaciones(username, password) {

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Administración</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f4f4;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      width: 300px;
+      text-align: center;
+    }
+    h2 {
+      margin-bottom: 20px;
+    }
+    .form-container {
+      margin-bottom: 20px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .logout-button {
+      background-color: #dc3545;
+    }
+    .logout-button:hover {
+      background-color: #c82333;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <% if (typeof username !== 'undefined') { %>
+      <!-- Mensaje de bienvenida y botón de cerrar sesión -->
+      <div class="form-container">
+        <h2>Hola <%= username %>!</h2>
+        <p>Estás en el panel de administración</p>
+        <button id="close-session" class="logout-button">Cerrar sesión</button>
+      </div>
+    <% } else { %>
+      <!-- Formulario de Inicio de Sesión -->
+      <div class="form-container">
+        <form id="login-form">
+          <h2>Login</h2>
+          <label for="login-username">Usuario</label>
+          <input type="text" id="login-username" placeholder="Usuario" required>
+          <label for="login-password">Contraseña</label>
+          <input type="password" id="login-password" placeholder="Contraseña" required>
+          <button type="submit">Iniciar Sesión</button>
+        </form>
+      </div>
+
+      <!-- Formulario de Registro -->
+      <div class="form-container">
+        <form id="register-form">
+          <h2>Registro</h2>
+          <label for="register-username">Usuario</label>
+          <input type="text" id="register-username" placeholder="Usuario" required>
+          <label for="register-password">Contraseña</label>
+          <input type="password" id="register-password" placeholder="Contraseña" required>
+          <button type="submit">Registrarse</button>
+        </form>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    // Función para manejar el cierre de sesión
+    document.getElementById('close-session')?.addEventListener('click', async () => {
+      try {
+        const response = await fetch('/logout', {
+          method: 'POST',
+        });
+
+        if (response.ok) {
+          // Recargar la página para mostrar el formulario de inicio de sesión
+          window.location.reload();
+        }
+      } catch (error) {
+        console.error('Error al cerrar sesión:', error);
+      }
+    });
+
+    // Función para manejar el inicio de sesión
+    document.getElementById('login-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('login-username').value;
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          window.location.href = '/protected';
+        } else {
+          alert(result.error || 'Error al iniciar sesión');
+        }
+      } catch (error) {
+        alert('Error de conexión con el servidor');
+      }
+    });
+
+    // Función para manejar el registro
+    document.getElementById('register-form')?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('register-username').value;
+      const password = document.getElementById('register-password').value;
+
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ username, password }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          alert(result.message || '¡Usuario registrado con éxito!');
+        } else {
+          alert(result.error || 'Error al registrar el usuario');
+        }
+      } catch (error) {
+        alert('Error de conexión con el servidor');
+      }
+    });
+  </script>
+</body>
+</html>
